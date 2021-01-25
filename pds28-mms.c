@@ -120,42 +120,13 @@ static ssize_t pds28_mmsdev_write(struct file *filp, const char __user *buf, siz
 	return -EINVAL;
 }
 
-
-static unsigned int pds28_mmsdev_poll(struct file *filp, poll_table *wait) 
-{
-	struct pds28_mms *mmsdev;
-	unsigned int retval_mask = 0;
-	mmsdev = filp->private_data;
-	poll_wait(filp, &read_wq, wait);
-	if (mmsdev->alarm) {
-		retval_mask = POLLPRI; 
-		mmsdev->alarm = 0;
-	} else {
-		retval_mask = 0;
-	}
-	return retval_mask;
-}
-
-
 static struct file_operations pds28_mmsdev_fops = {
 	.owner = THIS_MODULE,
 	.open = pds28_mmsdev_open,
 	.release = pds28_mmsdev_release,
 	.read = pds28_mmsdev_read,
 	.write = pds28_mmsdev_write,
-	.poll = pds28_mmsdev_poll,
 };
-
-/*static ssize_t ien_show(struct device *child, struct device_attribute *attr, char *buf)
-{
-	struct pds28_mms *mmsdev = dev_get_drvdata(child);
-
-	u32 alarm = ioread32(mmsdev->base_addr + MMS_STATUS_OFFSET);
-	alarm &= STATUS_ALARM_MASK;
-
-	return sprintf(buf, "%d\n", !!alarm);
-}
-static DEVICE_ATTR_RO(alarm);*/
 
 static ssize_t ctrl_ien_show(struct device *child, struct device_attribute *attr, char *buf)
 {
@@ -326,7 +297,6 @@ static ssize_t data_show(struct device *child, struct device_attribute *attr, ch
 static DEVICE_ATTR_RO(data);
 
 static struct attribute *pds28_mms_attrs[] = {
-	//&dev_attr_alarm.attr,
 	&dev_attr_ctrl_ien.attr,
 	&dev_attr_ctrl_en.attr,
 	&dev_attr_ctrl_res.attr,
@@ -344,7 +314,6 @@ static irqreturn_t pds28_mms_isr(int irq, void *data)
 	struct pds28_mms *mmsdev = data;
 
 	sysfs_notify(&mmsdev->dev->kobj, NULL, "data");
-	wake_up_interruptible(&read_wq);
 	mmsdev->alarm = 1;
 	iowrite32(0, mmsdev->base_addr + MMS_STATUS_OFFSET);
 
