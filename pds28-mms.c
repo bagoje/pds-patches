@@ -128,7 +128,7 @@ static unsigned int pds28_mmsdev_poll(struct file *filp, poll_table *wait)
 	mmsdev = filp->private_data;
 	poll_wait(filp, &read_wq, wait);
 	if (mmsdev->alarm) {
-		retval_mask = (POLLPRI | POLLRDNORM);
+		retval_mask = POLLPRI; 
 		mmsdev->alarm = 0;
 	} else {
 		retval_mask = 0;
