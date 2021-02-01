@@ -285,18 +285,46 @@ static ssize_t available_freq_show(struct device *child, struct device_attribute
 	return sprintf(buf, "normal fast\n");
 }
 static DEVICE_ATTR_RO(available_freq);
-/*
+
+static u32 pds28_data_to_mV(u16 data, u8 reso)
+{
+	u32 result = 0;
+	switch (reso) {
+	case 0:
+		data = data >> 4;
+		result += (data >> 7) * 1000;
+		result += (data & 0x0001) ? 7 : 0;
+		result += (data & 0x0002) ? 15 : 0;
+		result += (data & 0x0004) ? 31 : 0;
+		result += (data & 0x0008) ? 62 : 0;
+		result += (data & 0x0010) ? 125 : 0;
+		result += (data & 0x0020) ? 250 : 0;
+		result += (data & 0x0040) ? 500 : 0;
+		return result;
+	case 1:
+		data = data >> 8;
+		result += (data >> 3) * 1000;
+		result += (data & 0x0001) ? 125 : 0;
+		result += (data & 0x0002) ? 250 : 0;
+		result += (data & 0x0004) ? 500 : 0;
+		return result;
+	default:
+		return -EINVAL;
+	}
+}
+
 static ssize_t data_show(struct device *child, struct device_attribute *attr, char *buf)
 {
 	struct pds28_mms *mmsdev = dev_get_drvdata(child);
 
 	u32 data = ioread32(mmsdev->base_addr + MMS_DATA_OFFSET);
+	u32 reso = ioread32(mmsdev->base_addr + MMS_CTRL_OFFSET) & CTRL_RES_MASK ? 1 : 0;
 	data &= DATA_MASK;
-
-	return sprintf(buf, "%d\n", pds28_mms_reg_to_mC(data));
+	
+	return sprintf(buf, "%d\n", pds28_data_to_mV(data, reso));
 }
 static DEVICE_ATTR_RO(data);
-*/
+
 static struct attribute *pds28_mms_attrs[] = {
 	//&dev_attr_alarm.attr,
 	&dev_attr_ctrl_ien.attr,
@@ -305,7 +333,7 @@ static struct attribute *pds28_mms_attrs[] = {
 	&dev_attr_ctrl_freq.attr,
 	&dev_attr_available_res.attr,
 	&dev_attr_available_freq.attr,
-	//&dev_attr_data.attr,
+	&dev_attr_data.attr,
 	NULL,
 };
 
