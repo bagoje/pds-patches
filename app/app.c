@@ -31,14 +31,14 @@ static void make_timer(int sec, int *tfd)
 	
 	fd = timerfd_create(CLOCK_MONOTONIC,0);
 	if (fd < 0)
-		printf("timerfd_create failed\n");
+		perror("timerfd_create failed\n");
 	itval.it_interval.tv_sec = sec;
 	itval.it_interval.tv_nsec = 0;
         itval.it_value.tv_sec = sec;
         itval.it_value.tv_nsec = 0;
 	ret = timerfd_settime(fd, 0, &itval, NULL);
 	if (ret < 0)
-		printf("timerfd_settime failed\n");
+		perror("timerfd_settime failed\n");
 	*tfd = fd;
 }
 
@@ -51,13 +51,12 @@ static void *i2c_function(void *arg)
 	char query[100];
 	make_timer(2, &tfd);
 	if(tfd < 0)
-		printf("Timer initialization error\n");
+		perror("Timer initialization error\n");
 	sfd = open("/dev/i2c-2", O_RDWR);
 	ioctl(sfd, I2C_SLAVE, 0x38);
 	buff[0] = 0x00;
 	buff[1] = 0x02;
-	if (write(sfd, buff, 2) != 2)
-		printf("I2C ctrl reg write error.\n");
+	write(sfd, buff, 2);
 	while (1) {
 		read(tfd, &miss, sizeof(miss));
 		buff[0] = 0x02;
