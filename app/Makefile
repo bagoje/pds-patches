@@ -1,8 +1,7 @@
 CC=arm-linux-gnueabihf-gcc
-MCPU=cortex-a9
 
 CFLAGS=-g
-LDFLAGS=-lpthread 
+LDFLAGS=-lpthread -lsqlite3
 
 OBJS=app.o
 

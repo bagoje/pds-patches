@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-//#include <sqlite3.h>
+#include <sqlite3.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
